@@ -53,7 +53,7 @@ class VanillaSGD(LoggingMixin, object):
             predicted[idx] = model.predict(x)
             real[idx] = y
 
-        return self.loss.evaluate(real, predicted)
+        return self.loss(real, predicted)
 
     def fit(self, model, train_data, test_data=None):
         if test_data is not None:
