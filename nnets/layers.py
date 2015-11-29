@@ -1,8 +1,8 @@
 from __future__ import division
 import numpy as np
 
-from activations import SigmoidActivation
-from initializations import uniform_init_weights, uniform_init_biases
+from activation import SigmoidActivation
+from initialization import uniform_init_weights, uniform_init_biases
 
 
 class DenseLayer(object):

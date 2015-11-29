@@ -34,7 +34,7 @@ class VanillaSGD(LoggingMixin, object):
 
         # Sum of gradients for provided mini_batch
         for x, y in mini_batch:
-            delta_w, delta_b = model.get_cost_derivatives(self.loss, x, y)
+            delta_w, delta_b = model.get_loss_derivatives(self.loss, x, y)
 
             for l in xrange(len(model.layers)):
                 sum_delta_w[l] += delta_w[l]

@@ -7,11 +7,11 @@ from sklearn.cross_validation import train_test_split
 
 from ..models import MLPModel
 from ..layers import DenseLayer
-from ..costs import L2Loss
+from ..loss import MSE
 from ..train import VanillaSGD
 
-from ..activations import SigmoidActivation, IdentityActivation
-from ..initializations import const_init_weights, const_init_biases
+from ..activation import SigmoidActivation, IdentityActivation
+from ..initialization import const_init_weights, const_init_biases
 
 
 def test_forward_propagation():
@@ -52,12 +52,12 @@ def test_one_pass():
         ]
     )
 
-    loss = L2Loss()
+    loss = MSE()
 
     x = np.array([1.0, 1.0])
     y = np.array([1.0])
 
-    nabla_w, nabla_b = mlp.get_cost_derivatives(loss, x, y)
+    nabla_w, nabla_b = mlp.get_loss_derivatives(loss, x, y)
     ok_(len(nabla_w) == len(nabla_b))
 
     for idx, layer in enumerate(mlp.layers):
@@ -72,7 +72,7 @@ def test_vanilla_sgd():
         ]
      )
 
-    sgd = VanillaSGD(loss=L2Loss(), epochs=5, batch_size=128, learning_rate=0.2, test_every=2)
+    sgd = VanillaSGD(loss=MSE(), epochs=5, batch_size=128, learning_rate=0.2, test_every=2)
 
     X, y, real_coef = make_regression(n_samples=1000, n_features=1,
                                       n_informative=1, noise=10,

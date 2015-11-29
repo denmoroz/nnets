@@ -9,7 +9,7 @@ class MLPModel(object):
     def __init__(self, layers):
         self.layers = layers
 
-    def get_cost_derivatives(self, cost, x, y):
+    def get_loss_derivatives(self, loss, x, y):
         activations, deltas = [x], []
 
         # Forward propagation
@@ -20,7 +20,7 @@ class MLPModel(object):
             activations.append(activation)
 
         # Backward propagation
-        weighted_delta = cost.derivative(y, activations[-1])
+        weighted_delta = loss.gradient(y, activations[-1])
         for layer in reversed(self.layers):
             # Delta's will be stored for weights update, weighted delta will be backpropagated
             delta, weighted_delta = layer.propagate_backward(weighted_delta)
