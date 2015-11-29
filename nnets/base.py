@@ -1,4 +1,6 @@
 from __future__ import division
+import logging
+
 from autograd import grad, elementwise_grad
 
 
@@ -49,3 +51,28 @@ class AutogradLoss(BaseLoss):
 
     def gradient(self, real, predicted):
         return self._grad(real, predicted)
+
+
+class BaseLayer(object):
+    __layers_created = 0
+
+    @classmethod
+    def _get_next_name(cls):
+        next_name = '{}_{}'.format(cls.__name__, cls.__layers_created)
+        cls.__layers_created += 1
+        return next_name
+
+    def __init__(self, name=None):
+        if name is None:
+            self.name = self._get_next_name()
+        else:
+            self.name = name
+
+
+class LoggingMixin(object):
+
+    def log(self, msg, level=logging.INFO):
+        if not hasattr(self, '_logger'):
+            self._logger = logging.getLogger(self.__class__.__name__)
+
+        self._logger.log(level, msg)

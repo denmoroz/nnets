@@ -3,33 +3,39 @@ from itertools import izip
 
 import numpy as np
 
+from storage import DynamicStorage
+
 
 class MLPModel(object):
 
     def __init__(self, layers):
         self.layers = layers
+        self._storage = DynamicStorage()
 
     def get_loss_derivatives(self, loss, x, y):
-        activations, deltas = [x], []
-
         # Forward propagation
-        # Initial activation is input
-        activation = activations[0]
+        activation = x
         for layer in self.layers:
-            activation = layer.propagate_forward(activation)
-            activations.append(activation)
+            weighted_input, activation = layer.propagate_forward(activation)
+
+            self._storage[layer.name]['input'] = weighted_input
+            self._storage[layer.name]['activation'] = activation
 
         # Backward propagation
-        weighted_delta = loss.gradient(y, activations[-1])
-        for layer in reversed(self.layers):
-            # Delta's will be stored for weights update, weighted delta will be backpropagated
-            delta, weighted_delta = layer.propagate_backward(weighted_delta)
-            deltas.append(delta)
+        last_layer = self.layers[-1]
+        output_activation = self._storage[last_layer.name]['activation']
+        weighted_delta = loss.gradient(y, output_activation)
 
-        # Last activation is only needed to initialize backpropagation
-        activations = activations[:-1]
-        # Deltas collected in reverse order
-        deltas = reversed(deltas)
+        for layer in reversed(self.layers):
+            layer_input = self._storage[layer.name]['input']
+
+            # Delta's will be stored for parameters update, weighted delta will be backpropagated
+            delta, weighted_delta = layer.propagate_backward(weighted_delta, layer_input)
+            self._storage[layer.name]['delta'] = delta
+
+        layer_names = [layer.name for layer in self.layers]
+        activations = [x] + self._storage.for_keys(layer_names[:-1], 'activation')
+        deltas = self._storage.for_keys(layer_names, 'delta')
 
         # Calculate cost function derivatives for each w_{i,j}^{l}, b_{j}^{l}, where l - layer number
         nabla_w, nabla_b = [], []
@@ -47,7 +53,8 @@ class MLPModel(object):
         activation = x
 
         for layer in self.layers:
-            activation = layer.propagate_forward(activation)
+            # Drop weighted inputs of layer - its only necessary for learning phase
+            _, activation = layer.propagate_forward(activation)
 
         return activation
 

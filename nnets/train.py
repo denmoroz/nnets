@@ -1,20 +1,10 @@
 from __future__ import division
 
-import logging
-
 import random
 import numpy as np
 
+from base import LoggingMixin
 from utils import mini_batch_iterator
-
-
-class LoggingMixin(object):
-
-    def log(self, msg, level=logging.INFO):
-        if not hasattr(self, '_logger'):
-            self._logger = logging.getLogger(self.__class__.__name__)
-
-        self._logger.log(level, msg)
 
 
 class VanillaSGD(LoggingMixin, object):
@@ -33,6 +23,7 @@ class VanillaSGD(LoggingMixin, object):
         sum_delta_b = [np.zeros(layer._biases.shape) for layer in model.layers]
 
         # Sum of gradients for provided mini_batch
+        # TODO: may be done in parallel with multiprocessing pool
         for x, y in mini_batch:
             delta_w, delta_b = model.get_loss_derivatives(self.loss, x, y)
 
