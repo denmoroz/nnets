@@ -57,12 +57,11 @@ def test_one_pass():
     x = np.array([1.0, 1.0])
     y = np.array([1.0])
 
-    nabla_w, nabla_b = mlp.get_loss_derivatives(loss, x, y)
-    ok_(len(nabla_w) == len(nabla_b))
+    weights_grad, biases_grad = mlp.get_loss_derivatives(loss, x, y)
 
-    for idx, layer in enumerate(mlp.layers):
-        ok_(layer._weights.shape == nabla_w[idx].shape)
-        ok_(layer._biases.shape == nabla_b[idx].shape)
+    for layer in mlp.layers:
+        ok_(layer._weights.shape == weights_grad[layer.name].shape)
+        ok_(layer._biases.shape == biases_grad[layer.name].shape)
 
 
 def test_vanilla_sgd():
@@ -72,7 +71,8 @@ def test_vanilla_sgd():
         ]
      )
 
-    sgd = VanillaSGD(loss=MSE(), epochs=5, batch_size=128, learning_rate=0.2, test_every=2)
+    sgd = VanillaSGD(model=mlp, loss=MSE(), learning_rate=0.2,
+                     epochs=5, batch_size=128, test_every=2)
 
     X, y, real_coef = make_regression(n_samples=1000, n_features=1,
                                       n_informative=1, noise=10,
@@ -81,7 +81,7 @@ def test_vanilla_sgd():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     train_data, test_data = zip(X_train, y_train), zip(X_test, y_test)
 
-    sgd.fit(mlp, train_data, test_data)
+    sgd.fit(train_data, test_data)
 
-    estimated_coef = mlp[0]._weights[0][0]
+    estimated_coef = mlp.layer_by_index(0)._weights[0][0]
     ok_(abs(real_coef-estimated_coef) <= 2.5)

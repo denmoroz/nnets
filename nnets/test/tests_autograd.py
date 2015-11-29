@@ -13,7 +13,7 @@ def test_mse():
 
     # Real gradient for MSE, for provided real an predicted arrays
     def real_gradient(real, predicted):
-        return  0.5 * (predicted - real)
+        return 0.5 * (predicted - real)
 
     ok_(np.allclose(mse.gradient(real, predicted), real_gradient(real, predicted)))
 
@@ -31,6 +31,6 @@ def test_sigmoid_activation():
     sigmoid = SigmoidActivation()
 
     def real_derivative(z):
-        return  sigmoid(z)*(1.0 - sigmoid(z))
+        return sigmoid(z)*(1.0 - sigmoid(z))
 
     ok_(np.isclose(sigmoid.derivative(z), real_derivative(z)))
