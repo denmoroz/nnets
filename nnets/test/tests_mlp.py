@@ -108,4 +108,4 @@ def test_vanilla_sgd_binary_classification():
     sgd.fit(train_data, test_data)
     fit_loss = sgd.evaluate(test_data)
 
-    ok_(fit_loss <= 0.035)
+    ok_(fit_loss <= 0.05)

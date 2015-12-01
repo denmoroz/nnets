@@ -2,31 +2,43 @@ from nose.tools import ok_
 from nose.tools import nottest
 
 import numpy as np
-from ..loss import MSE, BinaryCrossEntropy
+from ..loss import MSE, MAE, BinaryCrossEntropy
 from ..activation import IdentityActivation, SigmoidActivation, TanhActivation, HardTanhActivation, RectifierActivation
 
 
 def test_mse():
     mse = MSE()
 
-    real = np.array([1.0, 2.0, 1.0, 3.0])
-    predicted = np.array([0.99, 1.87, 1.1, 2.7])
+    real = np.array([1.0, 2.0, 1.0, 3.0, 1.0])
+    predicted = np.array([0.99, 1.87, 1.1, 2.7, 0.95])
 
     # Real gradient for MSE, for provided real an predicted arrays
     def real_gradient(real, predicted):
-        return 0.5 * (predicted - real)
+        return 2.0 * (predicted - real) / len(real)
 
     ok_(np.allclose(mse.gradient(real, predicted), real_gradient(real, predicted)))
 
 
-def binary_cross_entropy():
-    log_loss = BinaryCrossEntropy()
+def test_mae():
+    mae = MAE()
 
-    real = np.array([0.0, 0.0, 1.0, 1.0])
-    predicted = np.array([0.05, 0.17, 0.65, 0.99])
+    real = np.array([1.0, 2.0, 1.0, 3.0])
+    predicted = np.array([0.99, 1.87, 1.1, 2.7])
 
     def real_gradient(real, predicted):
-        return (1.0-real)/(1.0-predicted) - real/predicted
+        return np.sign(predicted - real) / len(real)
+
+    ok_(np.allclose(mae.gradient(real, predicted), real_gradient(real, predicted)))
+
+
+def test_binary_cross_entropy():
+    log_loss = BinaryCrossEntropy()
+
+    real = np.array([0.0, 0.0, 1.0, 1.0, 1.0])
+    predicted = np.array([0.05, 0.17, 0.65, 0.99, 0.87])
+
+    def real_gradient(real, predicted):
+        return -(real/predicted - (1.0-real)/(1.0-predicted))/len(real)
 
     ok_(np.allclose(log_loss.gradient(real, predicted), real_gradient(real, predicted)))
 
