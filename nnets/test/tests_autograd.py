@@ -2,7 +2,7 @@ from nose.tools import ok_
 
 import numpy as np
 from ..loss import MSE
-from ..activation import IdentityActivation, SigmoidActivation
+from ..activation import IdentityActivation, SigmoidActivation, TanhActivation, HardTanhActivation, RectifierActivation
 
 
 def test_mse():
@@ -34,3 +34,42 @@ def test_sigmoid_activation():
         return sigmoid(z)*(1.0 - sigmoid(z))
 
     ok_(np.isclose(sigmoid.derivative(z), real_derivative(z)))
+
+
+def test_tanh_activation():
+    z = 100.0
+
+    tanh = TanhActivation()
+
+    def real_derivative(z):
+        return 1.0 - np.tanh(z) ** 2
+
+    ok_(np.isclose(tanh.derivative(z), real_derivative(z)))
+
+
+def test_hardtanh_activation():
+    z = 100.0
+
+    hard_tanh = HardTanhActivation()
+
+    def real_derivative(z):
+        if -1.0 < z < 1.0:
+            return 1.0
+        else:
+            return 0.0
+
+    ok_(np.isclose(hard_tanh.derivative(z), real_derivative(z)))
+
+
+def test_rectifier_activation():
+    z = 100.0
+
+    relu = RectifierActivation()
+
+    def real_derivative(z):
+        if z > 0.0:
+            return 1.0
+        else:
+            return 0.0
+
+    ok_(np.isclose(relu.derivative(z), real_derivative(z)))

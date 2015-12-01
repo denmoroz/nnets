@@ -1,4 +1,5 @@
 from nose.tools import ok_
+from nose.tools import nottest
 
 import numpy as np
 
@@ -64,24 +65,25 @@ def test_one_pass():
         ok_(layer._biases.shape == biases_grad[layer.name].shape)
 
 
+#@nottest
 def test_vanilla_sgd():
     mlp = MLPModel(
         layers=[
-            DenseLayer(in_size=1, out_size=1, activation=IdentityActivation()),
+            DenseLayer(in_size=3, out_size=1, activation=IdentityActivation()),
         ]
      )
 
     sgd = VanillaSGD(model=mlp, loss=MSE(), learning_rate=0.2,
                      epochs=5, batch_size=128, test_every=2)
 
-    X, y, real_coef = make_regression(n_samples=1000, n_features=1,
-                                      n_informative=1, noise=10,
+    X, y, real_coef = make_regression(n_samples=1000, n_features=3,
+                                      n_informative=3, noise=0,
                                       coef=True, random_state=0)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     train_data, test_data = zip(X_train, y_train), zip(X_test, y_test)
 
     sgd.fit(train_data, test_data)
+    estimated_coef = mlp.layer_by_index(0)._weights
 
-    estimated_coef = mlp.layer_by_index(0)._weights[0][0]
-    ok_(abs(real_coef-estimated_coef) <= 2.5)
+    ok_(np.allclose(real_coef, estimated_coef))
