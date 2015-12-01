@@ -2,13 +2,16 @@ from __future__ import division
 
 import autograd.numpy as np
 
-from base import AutogradActivation
+from base import BaseActivation, AutogradActivation
 
 
-class IdentityActivation(AutogradActivation):
+class IdentityActivation(BaseActivation):
 
     def __call__(self, z):
         return z
+
+    def derivative(self, z):
+        return 1.0
 
 
 class SigmoidActivation(AutogradActivation):

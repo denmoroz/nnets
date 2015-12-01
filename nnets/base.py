@@ -33,6 +33,13 @@ class BaseLoss(object):
         Base class for all loss functions.
     """
     def __call__(self, real, predicted):
+        real, predicted = self.preprocess(real, predicted)
+        return self.value(real, predicted)
+
+    def preprocess(self, real, predicted):
+        return real, predicted
+
+    def value(self, real, predicted):
         raise NotImplementedError()
 
     def gradient(self, real, predicted):
@@ -42,12 +49,12 @@ class BaseLoss(object):
 class AutogradLoss(BaseLoss):
     """
         Loss function with automatic differentiation.
-        All math logic inside __call__ method should be
+        All math logic inside value(...) method should be
         implemented with autograd.numpy wrapper.
     """
     def __init__(self):
         # Gradient by "predicted" variable
-        self._grad = grad(self.__call__, argnum=1)
+        self._grad = grad(self.value, argnum=1)
 
     def gradient(self, real, predicted):
         return self._grad(real, predicted)

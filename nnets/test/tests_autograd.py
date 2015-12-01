@@ -1,7 +1,8 @@
 from nose.tools import ok_
+from nose.tools import nottest
 
 import numpy as np
-from ..loss import MSE
+from ..loss import MSE, BinaryCrossEntropy
 from ..activation import IdentityActivation, SigmoidActivation, TanhActivation, HardTanhActivation, RectifierActivation
 
 
@@ -16,6 +17,18 @@ def test_mse():
         return 0.5 * (predicted - real)
 
     ok_(np.allclose(mse.gradient(real, predicted), real_gradient(real, predicted)))
+
+
+def binary_cross_entropy():
+    log_loss = BinaryCrossEntropy()
+
+    real = np.array([0.0, 0.0, 1.0, 1.0])
+    predicted = np.array([0.05, 0.17, 0.65, 0.99])
+
+    def real_gradient(real, predicted):
+        return (1.0-real)/(1.0-predicted) - real/predicted
+
+    ok_(np.allclose(log_loss.gradient(real, predicted), real_gradient(real, predicted)))
 
 
 def test_identity_activation():
@@ -42,7 +55,7 @@ def test_tanh_activation():
     tanh = TanhActivation()
 
     def real_derivative(z):
-        return 1.0 - np.tanh(z) ** 2
+        return 1.0 - tanh(z)**2
 
     ok_(np.isclose(tanh.derivative(z), real_derivative(z)))
 
