@@ -1,7 +1,8 @@
 from __future__ import division
 import logging
 
-from autograd import grad, elementwise_grad
+import numpy as np
+from autograd import elementwise_grad
 
 
 class BaseActivation(object):
@@ -34,12 +35,12 @@ class BaseLoss(object):
     """
     def __call__(self, real, predicted):
         real, predicted = self.preprocess(real, predicted)
-        return self.value(real, predicted)
+        return np.mean(self.values(real, predicted))
 
     def preprocess(self, real, predicted):
         return real, predicted
 
-    def value(self, real, predicted):
+    def values(self, real, predicted):
         raise NotImplementedError()
 
     def gradient(self, real, predicted):
@@ -54,7 +55,7 @@ class AutogradLoss(BaseLoss):
     """
     def __init__(self):
         # Gradient by "predicted" variable
-        self._grad = grad(self.value, argnum=1)
+        self._grad = elementwise_grad(self.values, argnum=1)
 
     def gradient(self, real, predicted):
         return self._grad(real, predicted)

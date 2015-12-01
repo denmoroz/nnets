@@ -14,7 +14,7 @@ def test_mse():
 
     # Real gradient for MSE, for provided real an predicted arrays
     def real_gradient(real, predicted):
-        return 2.0 * (predicted - real) / len(real)
+        return 2.0 * (predicted - real)
 
     ok_(np.allclose(mse.gradient(real, predicted), real_gradient(real, predicted)))
 
@@ -26,7 +26,7 @@ def test_mae():
     predicted = np.array([0.99, 1.87, 1.1, 2.7])
 
     def real_gradient(real, predicted):
-        return np.sign(predicted - real) / len(real)
+        return np.sign(predicted - real)
 
     ok_(np.allclose(mae.gradient(real, predicted), real_gradient(real, predicted)))
 
@@ -38,7 +38,7 @@ def test_binary_cross_entropy():
     predicted = np.array([0.05, 0.17, 0.65, 0.99, 0.87])
 
     def real_gradient(real, predicted):
-        return -(real/predicted - (1.0-real)/(1.0-predicted))/len(real)
+        return -(real/predicted - (1.0-real)/(1.0-predicted))
 
     ok_(np.allclose(log_loss.gradient(real, predicted), real_gradient(real, predicted)))
 

@@ -6,14 +6,14 @@ from base import AutogradLoss
 
 class MSE(AutogradLoss):
 
-    def value(self, real, predicted):
-        return np.mean((real - predicted)**2)
+    def values(self, real, predicted):
+        return (real - predicted)**2
 
 
 class MAE(AutogradLoss):
 
-    def value(self, real, predicted):
-        return np.mean(np.abs(real - predicted))
+    def values(self, real, predicted):
+        return np.abs(real - predicted)
 
 
 class BinaryCrossEntropy(AutogradLoss):
@@ -22,8 +22,8 @@ class BinaryCrossEntropy(AutogradLoss):
         super(BinaryCrossEntropy, self).__init__()
         self.eps = eps
 
-    def value(self, real, predicted):
-        return -np.mean(real*np.log(predicted)+(1.0-real)*np.log(1.0-predicted))
+    def values(self, real, predicted):
+        return -real*np.log(predicted)-(1.0-real)*np.log(1.0-predicted)
 
     def preprocess(self, real, predicted):
         # Since log loss is undefined in p = 0.0 and p = 1.0
@@ -35,5 +35,5 @@ class BinaryCrossEntropy(AutogradLoss):
 
 class CategoricalCrossEntropy(AutogradLoss):
 
-    def value(self, real, predicted):
-        return -np.mean(np.dot(real, np.log(predicted)))
+    def values(self, real, predicted):
+        return -np.dot(real, np.log(predicted))
