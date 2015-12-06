@@ -9,19 +9,15 @@ from utils import mini_batch_iterator
 
 class VanillaSGD(LoggingMixin, object):
 
-    def __init__(self, model, loss, learning_rate,
+    def __init__(self, model, learning_rate,
                  epochs, batch_size, test_every):
         self.model = model
 
-        self.loss = loss
         self.learning_rate = learning_rate
-
         self.epochs = epochs
+
         self.batch_size = batch_size
         self.test_every = test_every
-
-    def _get_loss_derivatives(self, x, y):
-        return self.model.get_loss_derivatives(self.loss, x, y)
 
     def _averaged_gradients(self, mini_batch):
         batch_size = len(mini_batch)
@@ -29,7 +25,7 @@ class VanillaSGD(LoggingMixin, object):
 
         # Sum gradients for provided mini_batch
         for x, y in mini_batch:
-            weights_grad, biases_grad = self._get_loss_derivatives(x, y)
+            weights_grad, biases_grad = self.model.get_loss_derivatives(x, y)
 
             for layer in self.model.layers:
                 if layer.name not in avg_grad_w:
@@ -61,7 +57,7 @@ class VanillaSGD(LoggingMixin, object):
             predicted[idx] = self.model.predict(x)
             real[idx] = y
 
-        return self.loss(real, predicted)
+        return self.model.loss(real, predicted)
 
     def fit(self, train_data, test_data=None):
         if test_data is not None:

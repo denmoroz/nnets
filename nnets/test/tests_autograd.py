@@ -3,7 +3,9 @@ from nose.tools import nottest
 
 import numpy as np
 from ..loss import MSE, MAE, BinaryCrossEntropy
-from ..activation import IdentityActivation, SigmoidActivation, TanhActivation, HardTanhActivation, RectifierActivation
+from ..activation import IdentityActivation, SigmoidActivation, TanhActivation,\
+    HardTanhActivation, RectifierActivation
+from ..regularization import L1Regularization, L2Regularization, ElasticNetRegularization
 
 
 def test_mse():
@@ -12,7 +14,6 @@ def test_mse():
     real = np.array([1.0, 2.0, 1.0, 3.0, 1.0])
     predicted = np.array([0.99, 1.87, 1.1, 2.7, 0.95])
 
-    # Real gradient for MSE, for provided real an predicted arrays
     def real_gradient(real, predicted):
         return 2.0 * (predicted - real)
 
@@ -98,3 +99,39 @@ def test_rectifier_activation():
             return 0.0
 
     ok_(np.isclose(relu.derivative(z), real_derivative(z)))
+
+
+def test_l1_regularization():
+    C_value = 2.5
+    weights = np.random.rand(3, 3)
+
+    reg = L1Regularization(C=C_value)
+
+    def real_derivative(w):
+       return C_value * np.sign(w)
+
+    ok_(np.allclose(reg.gradient(weights), real_derivative(weights)))
+
+
+def test_l2_regularization():
+    C_value = 2.5
+    weights = np.random.rand(3, 3)
+
+    reg = L2Regularization(C=C_value)
+
+    def real_derivative(w):
+        return C_value * (2.0 * w)
+
+    ok_(np.allclose(reg.gradient(weights), real_derivative(weights)))
+
+
+def test_elasticnet_regularization():
+    C_value = 0.25
+    weights = np.random.rand(3, 3)
+
+    reg = ElasticNetRegularization(C=C_value)
+
+    def real_derivative(w):
+        return 0.5 * C_value * (2.0 * w) + (1.0 - C_value) * np.sign(w)
+
+    ok_(np.allclose(reg.gradient(weights), real_derivative(weights)))

@@ -11,6 +11,7 @@ from ..layers import DenseLayer
 
 from ..activation import SigmoidActivation, IdentityActivation
 from ..loss import MSE, BinaryCrossEntropy
+from ..regularization import L2Regularization
 from ..initialization import const_init_weights, const_init_biases
 
 from ..train import VanillaSGD
@@ -29,7 +30,8 @@ def test_forward_propagation():
                        activation=SigmoidActivation(),
                        init_weights=const_init_weights,
                        init_biases=const_init_biases),
-        ]
+        ],
+        loss=MSE()
     )
 
     x = np.array([1.0, 1.0])
@@ -51,15 +53,43 @@ def test_one_pass():
                        activation=SigmoidActivation(),
                        init_weights=const_init_weights,
                        init_biases=const_init_biases),
-        ]
+        ],
+        loss=MSE()
     )
-
-    loss = MSE()
 
     x = np.array([1.0, 1.0])
     y = np.array([1.0])
 
-    weights_grad, biases_grad = mlp.get_loss_derivatives(loss, x, y)
+    weights_grad, biases_grad = mlp.get_loss_derivatives(x, y)
+
+    for layer in mlp.layers:
+        ok_(layer._weights.shape == weights_grad[layer.name].shape)
+        ok_(layer._biases.shape == biases_grad[layer.name].shape)
+
+
+def test_one_pass_regularized():
+    mlp = MLPModel(
+        # 2-3-1 network
+        layers=[
+            DenseLayer(in_size=2, out_size=3,
+                       activation=SigmoidActivation(),
+                       weights_regularization=L2Regularization(C=1.0),
+                       init_weights=const_init_weights,
+                       init_biases=const_init_biases),
+
+            DenseLayer(in_size=3, out_size=1,
+                       activation=SigmoidActivation(),
+                       weights_regularization=L2Regularization(C=1.0),
+                       init_weights=const_init_weights,
+                       init_biases=const_init_biases),
+        ],
+        loss=MSE()
+    )
+
+    x = np.array([1.0, 1.0])
+    y = np.array([1.0])
+
+    weights_grad, biases_grad = mlp.get_loss_derivatives(x, y)
 
     for layer in mlp.layers:
         ok_(layer._weights.shape == weights_grad[layer.name].shape)
@@ -70,11 +100,12 @@ def test_vanilla_sgd_regression():
     mlp = MLPModel(
         layers=[
             DenseLayer(in_size=3, out_size=1, activation=IdentityActivation()),
-        ]
+        ],
+        loss=MSE()
      )
 
-    sgd = VanillaSGD(model=mlp, loss=MSE(), learning_rate=0.2,
-                     epochs=5, batch_size=128, test_every=2)
+    sgd = VanillaSGD(model=mlp, learning_rate=0.2, epochs=5,
+                     batch_size=128, test_every=2)
 
     X, y, real_coef = make_regression(n_samples=1000, n_features=3,
                                       n_informative=3, noise=0,
@@ -94,11 +125,12 @@ def test_vanilla_sgd_binary_classification():
     mlp = MLPModel(
         layers=[
             DenseLayer(in_size=3, out_size=1, activation=SigmoidActivation()),
-        ]
+        ],
+        loss=BinaryCrossEntropy()
      )
 
-    sgd = VanillaSGD(model=mlp, loss=BinaryCrossEntropy(), learning_rate=0.2,
-                     epochs=5, batch_size=128, test_every=2)
+    sgd = VanillaSGD(model=mlp, learning_rate=0.2, epochs=5,
+                     batch_size=128, test_every=2)
 
     X, y = make_blobs(n_samples=1000, centers=2, n_features=3, random_state=0)
 

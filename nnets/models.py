@@ -6,11 +6,12 @@ import numpy as np
 
 class MLPModel(object):
 
-    def __init__(self, layers):
+    def __init__(self, layers, loss):
         self.layers = layers
+        self.loss = loss
         self._mapping = {layer.name: idx for idx, layer in enumerate(self.layers)}
 
-    def get_loss_derivatives(self, loss, x, y):
+    def get_loss_derivatives(self, x, y):
         inputs, activations, deltas = {}, {}, {}
 
         # Forward propagation
@@ -24,7 +25,7 @@ class MLPModel(object):
         # Backward propagation
         last_layer = self.layers[-1]
         output_activation = activations[last_layer.name]
-        weighted_delta = loss.gradient(y, output_activation)
+        weighted_delta = self.loss.gradient(y, output_activation)
 
         for layer in reversed(self.layers):
             layer_input = inputs[layer.name]
@@ -40,8 +41,16 @@ class MLPModel(object):
         # Calculate cost function derivatives for each layer's weights and biases
         weights_grad, biases_grad = {}, {}
         for layer_name, delta, activation in izip(layer_names, deltas, activations):
+            layer = self.layer_by_name(layer_name)
+
             weights_grad[layer_name] = np.outer(delta, activation)
             biases_grad[layer_name] = delta
+
+            # Add weights regularization term, if layer contains it (biases excluded)
+            # Regularization constant is included in regularization function
+            if layer.regularized:
+                reg_fun = layer.weights_regularization
+                weights_grad[layer_name] += reg_fun.gradient(layer._weights)
 
         return weights_grad, biases_grad
 
